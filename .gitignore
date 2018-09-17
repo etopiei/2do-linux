@@ -1,2 +1,4 @@
 *DS_Store
 /database_files/*
+/app/.idea/*
+/app/__pycache__/*
