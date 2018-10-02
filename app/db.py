@@ -14,7 +14,6 @@ def get_main_lists():
     main_lists = []
     for row in c.execute('SELECT title, uid FROM calendars'):
         main_lists.append({'title': row[0], 'uid': row[1]})
-
     return main_lists
 
 def get_tasks():
@@ -25,8 +24,15 @@ def get_tasks():
     '''
 
     tasks = []
-    for row in c.execute('SELECT title, uid, calendaruid FROM tasks'):
-        tasks.append({'title': row[0], 'uid': row[1], 'parent_uid': row[2]})
+    for row in c.execute('SELECT title, uid, calendaruid, duedate, iscompleted FROM tasks'):
+        completed = True
+        duetime = None
+        if row[3] == 6406192800.0:
+            duetime = row[3]
+        if row[4] == 0:
+            completed = False
+
+        tasks.append({'title': row[0], 'uid': row[1], 'parent_uid': row[2], 'duetime': duetime, 'completed': completed})
 
     return tasks
 

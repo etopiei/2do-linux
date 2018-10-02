@@ -2,3 +2,4 @@
 /database_files/*
 /app/.idea/*
 /app/__pycache__/*
+/app/.vscode/*

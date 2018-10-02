@@ -17,14 +17,18 @@ class MainUI:
         self.app.startFrame("Lists", row=0, column=0)
         main_lists = todo_object.get_main_lists()
         for x in main_lists:
-            if x.title == "Music":
+            if current_list == None:
                 current_list = x.uid
             self.app.label(x.title)
         self.app.stopFrame()
 
         self.app.startFrame("Tasks", row=0, column=1)
-        for x in todo_object.get_tasks_of_parent(current_list):
-            self.app.label(x.title)
+        self.app.startScrollPane("Pane")
+        task_list = todo_object.get_tasks()
+        task_list = task_list.filter_tasks_by_completed(False)
+        for x in task_list:
+            self.app.addNamedCheckBox(x.title, x)
+        self.app.stopScrollPane()
         self.app.stopFrame()
 
     def start(self):
