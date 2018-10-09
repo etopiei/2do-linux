@@ -25,13 +25,13 @@ class ToDo:
 
         task_list = db.get_tasks()
         for x in task_list:
-            self.tasks.append(TaskObject(x['title'], x['uid'], x['parent_uid'], x['duetime'], x['completed']))
+            self.tasks.append(TaskObject(x['title'], x['uid'], x['parent_uid'], x['duetime'], x['completed'], x['notes']))
 
     def get_main_lists(self):
         return self.main_lists
 
     def get_tasks(self):
-        return self.tasks
+        return self.tasks.copy_task_list()
 
     def get_tasks_of_parent(self, parent_uid):
         return self.tasks.get_tasks_of_parent(parent_uid)
@@ -45,12 +45,13 @@ class TaskObject:
     This is the underlying structure for TaskList and MainList and is what the UI will mostly access.
     '''
 
-    def __init__(self, title, uid, parent_uid=None, duetime=time.time(), completed=False):
+    def __init__(self, title, uid, parent_uid=None, duetime=time.time(), completed=False, notes=None):
         self.title = title
         self.uid = uid
         self.parent_uid = parent_uid
         self.duetime = duetime
         self.completed = completed
+        self.notes = notes
 
     def title(self):
         return self.title
@@ -59,7 +60,19 @@ class TaskObject:
         return self.uid
 
     def __str__(self):
-        return "{Title: " + str(self.title) + " UID: " + str(self.uid) + "}"
+        return_string =  "{Title: " + str(self.title) + " UID: " + str(self.uid)
+        if self.parent_uid != None:
+            return_string += " Parent: " + self.parent_uid
+        if self.completed:
+            return_string += " Completed"
+        else:
+            return_string += " Not Completed"
+        if self.notes != '':
+            return_string += " Notes: " + self.notes
+
+        return_string += "}"
+
+        return return_string
 
 class MainList:
 
@@ -95,6 +108,19 @@ class TaskList:
     def __init__(self):
         self.tasks = []
 
+    def __len__(self):
+        return len(self.tasks)
+
+    def copy_task_list(self):
+        '''
+        This is used to ensure that the original data from the database is still stored
+        and the app UI can filter and sort on data without modifying the original data
+        '''
+        copy = TaskList()
+        for x in self.tasks:
+            copy.append(x)
+        return copy
+
     def append(self, task_object):
         self.tasks.append(task_object)
 
@@ -129,13 +155,20 @@ class TaskList:
         for x in self.tasks:
             if condition_lambda(x):
                 filtered_task_list.append(x)
-        return filtered_task_list
+        self.tasks = filtered_task_list
+
+    def abstract_sort(self, access_lambda, asc=False):
+        '''
+        This is an abstract function that sorts the list of tasks by a particular key
+        specified by the access lambda. Such as duedate, alphabetical etc.
+        '''
+        self.tasks.sort(key=access_lambda, reverse=asc)
 
     def filter_tasks_by_completed(self, completed=False):
         '''
         Filter by whether it has been completed or not: based on the completed argument
         '''
-        return self.abstract_filter(lambda x: x.completed == completed)
+        self.abstract_filter(lambda x: x.completed == completed)
                 
 
     def filter_tasks_by_datetime(self, datetime, after=True):
@@ -144,6 +177,19 @@ class TaskList:
         either after or before the specified date, the default is after
         '''
         if after:
-            return self.abstract_filter(lambda x: x.duetime > datetime)
+            self.abstract_filter(lambda x: x.duetime > datetime)
         else:
-            return self.abstract_filter(lambda x: x.duetime < datetime) 
+            self.abstract_filter(lambda x: x.duetime < datetime) 
+
+    def filter_tasks_by_parent_uid(self, uid):
+        '''
+        This method should only allow tasks whose parent uid is the same as the argument passed to this function
+        This function should be modified to go a few levels deep with parents
+        '''
+        self.abstract_filter(lambda x: str(x.parent_uid) == str(uid))
+
+    def sort_tasks_by_due_date(self, asc=False):
+        '''
+        This method sorts by task due date using the abstract sort function.
+        '''
+        self.abstract_sort(lambda x: x.duetime, asc)

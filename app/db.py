@@ -24,15 +24,12 @@ def get_tasks():
     '''
 
     tasks = []
-    for row in c.execute('SELECT title, uid, calendaruid, duedate, iscompleted FROM tasks'):
+    for row in c.execute('SELECT title, uid, calendaruid, duedate, iscompleted, notes FROM tasks'):
         completed = True
-        duetime = None
-        if row[3] == 6406192800.0:
-            duetime = row[3]
         if row[4] == 0:
             completed = False
 
-        tasks.append({'title': row[0], 'uid': row[1], 'parent_uid': row[2], 'duetime': duetime, 'completed': completed})
+        tasks.append({'title': row[0], 'uid': row[1], 'parent_uid': row[2], 'duetime': row[3], 'completed': completed, 'notes': row[5]})
 
     return tasks
 
