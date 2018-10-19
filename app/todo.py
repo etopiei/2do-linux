@@ -21,7 +21,7 @@ class ToDo:
         database_main_lists = db.get_main_lists()
         for x in database_main_lists:
             if x['title'] != None and x['uid'] != None:
-                self.main_lists.append(TaskObject(x['title'], x['uid']))
+                self.main_lists.append(TaskObject(x['title'], x['uid'], None, colour=x['color'], special=x['special']))
 
         task_list = db.get_tasks()
         for x in task_list:
@@ -45,19 +45,15 @@ class TaskObject:
     This is the underlying structure for TaskList and MainList and is what the UI will mostly access.
     '''
 
-    def __init__(self, title, uid, parent_uid=None, duetime=time.time(), completed=False, notes=None):
+    def __init__(self, title, uid, parent_uid, duetime=time.time(), completed=False, notes=None, colour=None, special=None):
         self.title = title
         self.uid = uid
         self.parent_uid = parent_uid
         self.duetime = duetime
         self.completed = completed
         self.notes = notes
-
-    def title(self):
-        return self.title
-
-    def uid(self):
-        return self.uid
+        self.colour = colour
+        self.special = special
 
     def __str__(self):
         return_string =  "{Title: " + str(self.title) + " UID: " + str(self.uid)
@@ -83,9 +79,12 @@ class MainList:
 
     def __init__(self):
         self.lists = []
+        self.colour = None
+        self.special = False
 
     def append(self, task_object):
         self.lists.append(task_object)
+        return self
 
     def __str__(self):
         print(len(self.lists))

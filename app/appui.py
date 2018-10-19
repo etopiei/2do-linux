@@ -14,6 +14,7 @@ class MainUI:
         self.current_list_title = None
         self.main_list = None
         self.task_list = None
+        self.redraws = 0
     
     def main_setup(self, todo_object):
         # here take the data from the todo object and set up a UI
@@ -23,22 +24,10 @@ class MainUI:
         self.task_list = todo_object.get_tasks()
         self.draw()
 
-    def draw(self):
-
-        self.app.startFrame("Lists", row=0, column=0)
-
-        for x in self.main_list:
-            if self.current_list == None:
-                self.current_list = x.uid
-                self.current_list_title = x.title
-            if self.current_list == x.uid:
-                self.drawListMenuItem(x, True)
-            else:
-                self.drawListMenuItem(x, False)
-        self.app.stopFrame()
-
+    def drawRightSide(self):
+        
         self.app.startFrame("Tasks", row=0, column=1)
-        self.app.startScrollPane("Pane")
+        self.app.startScrollPane("Pane" + str(self.redraws))
 
         # Make copy for draw filtering and sorting
         task_list = self.task_list.copy_task_list()
@@ -54,19 +43,36 @@ class MainUI:
         self.app.stopScrollPane()
         self.app.stopFrame()
 
-    def drawTaskObject(self, task_object):
-        self.app.addNamedCheckBox(task_object.title, str(task_object) + "task")
-        self.app.addHorizontalSeparator()
-        if task_object.notes != '':
-            self.app.addLabel(str(task_object) + "note", task_object.notes)
+        self.redraws += 1
 
-    def drawListMenuItem(self, main_list_item, isSelected):
+    def draw(self):
+
+        self.app.startFrame("Lists", row=0, column=0)
+
+        for x in self.main_list:
+            if self.current_list == None:
+                self.current_list = x.uid
+                self.current_list_title = x.title
+            if self.current_list == x.uid:
+                self.drawListMenuItem(x, "red")
+            else:
+                self.drawListMenuItem(x, x.colour.convertRGBToHexString())
+        self.app.stopFrame()
+
+        self.drawRightSide()
+
+    def drawTaskObject(self, task_object):
+        self.app.addNamedCheckBox(task_object.title, str(task_object) + "task" + str(self.redraws))
+        if task_object.notes != '':
+            self.app.addLabel(str(task_object) + "note" + str(self.redraws), task_object.notes)
+            self.app.setLabelAlign(str(task_object) + "note" + str(self.redraws), "left")
+        self.app.addHorizontalSeparator()
+
+    def drawListMenuItem(self, main_list_item, colour="#FFFFFF"):
         self.app.button(main_list_item.title, value=self.handleMenuClick)
-        if isSelected:
-            self.app.setButtonBg(main_list_item.title, "red")
+        self.app.setButtonFg(main_list_item.title, colour)
 
     def handleMenuClick(self, value):
-         # print("Menu Click: " + str(value))
         for x in self.main_list:
             if x.title == str(value):
                 self.current_list = x.uid
@@ -74,8 +80,8 @@ class MainUI:
         self.redraw()
 
     def redraw(self):
-        self.app.removeAllWidgets() # see if this can be written to only remove widgets in the right pane.
-        self.draw()
+        self.app.removeFrame("Tasks") # see if this can be written to only remove widgets in the right pane.
+        self.drawRightSide()
 
     def start(self):
         # now start the app loop and spawn a window

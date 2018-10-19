@@ -1,4 +1,5 @@
 import sqlite3
+from helpers import Colour
 
 conn = sqlite3.connect('test.db')
 c = conn.cursor()
@@ -12,8 +13,13 @@ def get_main_lists():
     '''
 
     main_lists = []
-    for row in c.execute('SELECT title, uid FROM calendars'):
-        main_lists.append({'title': row[0], 'uid': row[1]})
+    for row in c.execute('SELECT title, uid, parentuid, parentname, redcolor, greencolor, bluecolor FROM calendars'):
+        special = False
+        colour = Colour(row[4], row[5], row[6])
+        if row[2] != '2DoCalGroupSmart':
+            if row[3] != 'LISTS':
+                special = True
+            main_lists.append({'title': row[0], 'uid': row[1], 'color': colour, 'special': special})
     return main_lists
 
 def get_tasks():
