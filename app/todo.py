@@ -134,6 +134,13 @@ class TaskList:
     def __iter__(self):
         return iter(self.tasks)
 
+    def toggleCompletionOfTaskObject(self, uid):
+
+        for x in self.tasks:
+            if x.uid == uid:
+                x.completed = not x.completed
+                return x.completed
+
     def get_tasks_of_parent(self, parent_uid):
         '''
         Iterate over task list and if the task_object parent_uid is not none and equals parent_uid 

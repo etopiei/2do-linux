@@ -9,3 +9,4 @@ if __name__ == "__main__":
 
     app.main_setup(todo_instance) # get app ready
     app.start() # leggo
+    db.closeConnection() # once app is done close connection to db

@@ -4,6 +4,15 @@ from helpers import Colour
 conn = sqlite3.connect('test.db')
 c = conn.cursor()
 
+def closeConnection():
+    conn.close()
+
+def commitDatabaseChanges():
+    '''
+    This will save changes made to the database
+    '''
+    conn.commit()
+
 def get_main_lists():
     '''
     This method should return from the database a list of main parent lists. 
@@ -39,3 +48,12 @@ def get_tasks():
 
     return tasks
 
+def toggleItemCompletionInDatabase(uid, newValue):
+    '''
+    This method will take the UID of a task given to it and toggle its completion status in the database.
+    '''
+    newCompletedValue = '0'
+    if newValue:
+        newCompletedValue = '1'
+    c.execute("UPDATE tasks SET iscompleted = '" + newCompletedValue + "' WHERE uid = '" + uid + "'")
+    commitDatabaseChanges()

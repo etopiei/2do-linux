@@ -1,6 +1,6 @@
 from appJar import gui
-import todo
-
+import todo, db
+from helpers import Colour
 
 class MainUI:
 
@@ -54,15 +54,16 @@ class MainUI:
                 self.current_list = x.uid
                 self.current_list_title = x.title
             if self.current_list == x.uid:
-                self.drawListMenuItem(x, "red")
+                self.drawListMenuItem(x, Colour(1, 0, 0))
             else:
-                self.drawListMenuItem(x, x.colour.convertRGBToHexString())
+                self.drawListMenuItem(x, x.colour)
         self.app.stopFrame()
 
         self.drawRightSide()
 
     def drawTaskObject(self, task_object):
         self.app.addNamedCheckBox(task_object.title, str(task_object) + "task" + str(self.redraws))
+        self.app.setCheckBoxChangeFunction(str(task_object) + "task" + str(self.redraws), self.handleItemClick)
         if task_object.notes != '':
             self.app.addLabel(str(task_object) + "note" + str(self.redraws), task_object.notes)
             self.app.setLabelAlign(str(task_object) + "note" + str(self.redraws), "left")
@@ -70,13 +71,26 @@ class MainUI:
 
     def drawListMenuItem(self, main_list_item, colour="#FFFFFF"):
         self.app.button(main_list_item.title, value=self.handleMenuClick)
-        self.app.setButtonFg(main_list_item.title, colour)
+        self.app.setButtonBg(main_list_item.title, colour.convertRGBToHexString())
+        self.app.setButtonFg(main_list_item.title, colour.getDarkerShade().convertRGBToHexString())
 
     def handleMenuClick(self, value):
         for x in self.main_list:
             if x.title == str(value):
                 self.current_list = x.uid
                 self.current_list_title = x.title
+        self.redraw()
+
+    def getUIDFromString(self, task_object_string):
+        return task_object_string.split('UID: ')[1].split(" ")[0]
+
+    def handleItemClick(self, value):
+        '''
+        The value passed to this is the TaskObject that was clicked
+        '''
+        uid = self.getUIDFromString(value)
+        newValue = self.task_list.toggleCompletionOfTaskObject(uid)
+        db.toggleItemCompletionInDatabase(uid, newValue)
         self.redraw()
 
     def redraw(self):

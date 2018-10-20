@@ -9,6 +9,13 @@ class Colour:
 
     def __str__(self):
         return "R:" + str(self.r) + "\nG:" + str(self.g) + "\nB:" + str(self.b)
+
+    def getDarkerShade(self):
+        '''
+        This method will return a colour of a darker shade for the text
+        so that text of the colour will be readable on the original BG colour
+        '''
+        return Colour(self.r*0.75, self.g*0.75, self.b*0.75)
     
     def getHex(self, n):
         chars = "0123456789ABCDEF"

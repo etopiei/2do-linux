@@ -3,3 +3,6 @@
 /app/.idea/*
 /app/__pycache__/*
 /app/.vscode/*
+/app/test.db-shm
+/app/test.db-wal
+/app/test.db
