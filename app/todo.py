@@ -25,7 +25,8 @@ class ToDo:
 
         task_list = db.get_tasks()
         for x in task_list:
-            self.tasks.append(TaskObject(x['title'], x['uid'], x['parent_uid'], x['duetime'], x['completed'], x['notes']))
+            task_colour = self.main_lists.findColourUID(x['parent_uid'])
+            self.tasks.append(TaskObject(x['title'], x['uid'], x['parent_uid'], x['duetime'], x['startdate'], x['completed'], x['notes'], colour=task_colour))
 
     def get_main_lists(self):
         return self.main_lists
@@ -45,11 +46,12 @@ class TaskObject:
     This is the underlying structure for TaskList and MainList and is what the UI will mostly access.
     '''
 
-    def __init__(self, title, uid, parent_uid, duetime=time.time(), completed=False, notes=None, colour=None, special=None):
+    def __init__(self, title, uid, parent_uid, duetime=time.time(), starttime=time.time(), completed=False, notes=None, colour=None, special=None):
         self.title = title
         self.uid = uid
         self.parent_uid = parent_uid
         self.duetime = duetime
+        self.starttime = starttime
         self.completed = completed
         self.notes = notes
         self.colour = colour
@@ -79,8 +81,6 @@ class MainList:
 
     def __init__(self):
         self.lists = []
-        self.colour = None
-        self.special = False
 
     def append(self, task_object):
         self.lists.append(task_object)
@@ -95,6 +95,11 @@ class MainList:
 
     def __iter__(self):
         return iter(self.lists)
+
+    def findColourUID(self, uid):
+        for x in self.lists:
+            if x.uid == uid:
+                return x.colour
 
 
 class TaskList:

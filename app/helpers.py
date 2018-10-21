@@ -1,4 +1,10 @@
 import math
+from datetime import datetime
+
+def time_to_string(timestamp):
+    a_time = int(timestamp)
+    #'%d/%m %H:%M'
+    return datetime.utcfromtimestamp(a_time).strftime('%d/%m')
 
 class Colour:
 

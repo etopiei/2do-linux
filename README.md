@@ -17,7 +17,7 @@ Then run:
 
 ## RoadMap
 
-1. Get UI to display current tasks from an SQL Lite Database taken from an app backup.
+1. ~~Get UI to display current tasks from an SQL Lite Database taken from an app backup.~~
 2. Get Basic Features working such as completing tasks, changing dates - These actions should update the database
 3. Output the current data into a .plist file consistent with 2do dropbox sync files.
 4. Implement DropBox connectivity and gzipping files.

@@ -1,5 +1,5 @@
 from appJar import gui
-import todo, db
+import todo, db, helpers
 from helpers import Colour
 
 class MainUI:
@@ -62,11 +62,25 @@ class MainUI:
         self.drawRightSide()
 
     def drawTaskObject(self, task_object):
-        self.app.addNamedCheckBox(task_object.title, str(task_object) + "task" + str(self.redraws))
+
+        row = self.app.getRow()
+        self.app.addNamedCheckBox(task_object.title, str(task_object) + "task" + str(self.redraws), row, 0)
+
+        if task_object.duetime != 6406192800.0:
+            self.app.addLabel(str(task_object) + "time" + str(self.redraws), helpers.time_to_string(task_object.duetime), row, 1)
+            self.app.setLabelFg(str(task_object) + "time" + str(self.redraws), "red")
+        elif task_object.starttime != 6406192800.0:
+            self.app.addLabel(str(task_object) + "time" + str(self.redraws), helpers.time_to_string(task_object.starttime), row, 1)
+            self.app.setLabelFg(str(task_object) + "time" + str(self.redraws), "green")
+
+        self.app.setCheckBoxBg(str(task_object) + "task" + str(self.redraws), task_object.colour.convertRGBToHexString())
         self.app.setCheckBoxChangeFunction(str(task_object) + "task" + str(self.redraws), self.handleItemClick)
+
         if task_object.notes != '':
             self.app.addLabel(str(task_object) + "note" + str(self.redraws), task_object.notes)
             self.app.setLabelAlign(str(task_object) + "note" + str(self.redraws), "left")
+            self.app.setLabelBg(str(task_object) + "note" + str(self.redraws), task_object.colour.convertRGBToHexString())
+
         self.app.addHorizontalSeparator()
 
     def drawListMenuItem(self, main_list_item, colour="#FFFFFF"):
