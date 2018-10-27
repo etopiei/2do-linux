@@ -18,7 +18,7 @@ Then run:
 ## RoadMap
 
 1. ~~Get UI to display current tasks from an SQL Lite Database taken from an app backup.~~
-2. Get Basic Features working such as completing tasks, changing dates - These actions should update the database
+2. Get Basic Features working such as ~~completing tasks~~, ~~searching~~ and changing dates - These actions should update the database
 3. Output the current data into a .plist file consistent with 2do dropbox sync files.
 4. Implement DropBox connectivity and gzipping files.
 
@@ -26,7 +26,7 @@ Then run:
 
  - Use a different GUI library (I'm not 100% sold on appJar, it works for now but I'm trying to keep the presentation logic seperate so it can be changed later)
  - Add advanced features such as alerts, notes, attachments, priority, tags (tags may be required for inital release, even though I don't personally use tags)
- - Search (Again this might be part of the inital release, it's kinda important)
+ - ~~Search (Again this might be part of the inital release, it's kinda important)~~
  - Customise UI colours
 
 ## Contributing
