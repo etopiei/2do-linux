@@ -1,6 +1,9 @@
 from appJar import gui
-import todo, db, helpers, time
+import db
+import helpers
+import time
 from helpers import Colour
+
 
 class MainUI:
 
@@ -33,7 +36,7 @@ class MainUI:
             self.searchKeyword = ""
             self.redraw()
 
-    def drawRightSide(self):
+    def draw_right_side(self):
         
         self.app.startFrame("Tasks", row=0, column=1)
         self.app.startScrollPane("Pane" + str(self.redraws))
@@ -46,27 +49,29 @@ class MainUI:
         # Make copy for draw filtering and sorting
         task_list = self.task_list.copy_task_list()
 
-        if self.current_list_title != "All" and self.current_list_title != "Done" and self.current_list_title != "Today":
-            task_list.filter_tasks_by_parent_uid(self.current_list) # Get tasks only from one list
+        bad_lists = ["All", "Done", "Today"]
+
+        if self.current_list_title not in bad_lists:
+            task_list.filter_tasks_by_parent_uid(self.current_list)  # Get tasks only from one list
 
         # filter tasks if there is a search term
         if self.searchKeyword != "":
             task_list.search_by_keyword(self.searchKeyword)
 
         if self.current_list_title == "Done":
-            task_list.filter_tasks_by_completed(True) # get all completed tasks
+            task_list.filter_tasks_by_completed(True)  # get all completed tasks
         else:
-            task_list.filter_tasks_by_completed(False) # Get incomplete tasks
+            task_list.filter_tasks_by_completed(False)  # Get incomplete tasks
 
         if self.current_list_title == "Today":
-            start_str = time.strftime( "%m/%d/%Y" ) + " 00:00:00"
+            start_str = time.strftime("%m/%d/%Y") + " 00:00:00"
             today = int(time.mktime(time.strptime(start_str, "%m/%d/%Y %H:%M:%S")))
             task_list.filter_tasks_by_datetime(today, True)
 
-        task_list.sort_tasks_by_due_date(True) # Sort them chronilogically
+        task_list.sort_tasks_by_due_date(True)  # Sort them chronilogically
 
         for x in task_list:
-            self.drawTaskObject(x)
+            self.draw_task_object(x)
 
         self.app.stopScrollPane()
         self.app.stopFrame()
@@ -78,72 +83,77 @@ class MainUI:
         self.app.startFrame("Lists", row=0, column=0)
 
         for x in self.main_list:
-            if self.current_list == None:
+            if self.current_list is None:
                 self.current_list = x.uid
                 self.current_list_title = x.title
             if self.current_list == x.uid:
-                self.drawListMenuItem(x, Colour(1, 0, 0))
+                self.draw_list_menu_item(x, Colour(1, 0, 0))
             else:
-                self.drawListMenuItem(x, x.colour)
+                self.draw_list_menu_item(x, x.colour)
         self.app.stopFrame()
 
-        self.drawRightSide()
+        self.draw_right_side()
 
-    def drawTaskObject(self, task_object):
+    def draw_task_object(self, task_object):
 
         row = self.app.getRow()
-        self.app.addNamedCheckBox(task_object.title, str(task_object) + "task" + str(self.redraws), row, 0)
+        truncated_title = task_object.title[:40]
+        truncated = task_object.title != truncated_title
+        if truncated:
+            truncated_title += "..."
+        self.app.addNamedCheckBox(truncated_title, str(task_object) + "task" + str(self.redraws), row, 0)
 
-        if task_object.duetime != 6406192800.0:
-            self.app.addLabel(str(task_object) + "time" + str(self.redraws), helpers.time_to_string(task_object.duetime), row, 1)
-            self.app.setLabelFg(str(task_object) + "time" + str(self.redraws), "red")
-        elif task_object.starttime != 6406192800.0:
-            self.app.addLabel(str(task_object) + "time" + str(self.redraws), helpers.time_to_string(task_object.starttime), row, 1)
-            self.app.setLabelFg(str(task_object) + "time" + str(self.redraws), "green")
+        unique_name = str(task_object) + "time" + str(self.redraws)
 
-        self.app.setCheckBoxFg(str(task_object) + "task" + str(self.redraws), task_object.colour.convertRGBToHexString())
-        self.app.setCheckBoxChangeFunction(str(task_object) + "task" + str(self.redraws), self.handleItemClick)
+        if task_object.duetime != float(0):
+            self.app.addLabel(unique_name, helpers.time_to_string(task_object.duetime), row, 1)
+            self.app.setLabelFg(unique_name, "red")
+        elif task_object.starttime != float(0):
+            self.app.addLabel(unique_name, helpers.time_to_string(task_object.starttime), row, 1)
+            self.app.setLabelFg(unique_name, "green")
+
+        self.app.setCheckBoxChangeFunction(str(task_object) + "task" + str(self.redraws), self.handle_item_click)
 
         if task_object.notes != '':
-            self.app.addLabel(str(task_object) + "note" + str(self.redraws), task_object.notes)
+            self.app.addLabel(str(task_object) + "note" + str(self.redraws), task_object.notes[:40])
             self.app.setLabelAlign(str(task_object) + "note" + str(self.redraws), "left")
-            self.app.setLabelFg(str(task_object) + "note" + str(self.redraws), task_object.colour.convertRGBToHexString())
 
         self.app.addHorizontalSeparator()
 
-    def drawListMenuItem(self, main_list_item, colour="#FFFFFF"):
-        self.app.button(main_list_item.title, value=self.handleMenuClick)
-        self.app.setButtonBg(main_list_item.title, colour.convertRGBToHexString())
-        self.app.setButtonFg(main_list_item.title, colour.getDarkerShade().convertRGBToHexString())
+    def draw_list_menu_item(self, main_list_item, colour=Colour.from_hex_string("#FFFFFF")):
+        self.app.button(main_list_item.title, value=self.handle_menu_click)
+        self.app.setButtonBg(main_list_item.title, colour.convert_rgb_to_hex_string())
+        self.app.setButtonFg(main_list_item.title, colour.get_darker_shade().convert_rgb_to_hex_string())
 
-    def handleMenuClick(self, value):
+    def handle_menu_click(self, value):
         for x in self.main_list:
             if x.title == str(value):
                 self.current_list = x.uid
                 self.current_list_title = x.title
         self.redraw()
 
-    def getUIDFromString(self, task_object_string):
+    @staticmethod
+    def get_uid_from_string(task_object_string):
         return task_object_string.split('UID: ')[1].split(" ")[0]
 
-    def handleItemClick(self, value):
-        '''
-        The value passed to this is the TaskObject that was clicked
-        '''
-        uid = self.getUIDFromString(value)
-        newValue = self.task_list.toggleCompletionOfTaskObject(uid)
-        db.toggleItemCompletionInDatabase(uid, newValue)
+    def handle_item_click(self, value):
+        """
+        The value passed to this is the TaskObject that was clicked.
+        """
+        uid = self.get_uid_from_string(value)
+        new_value = self.task_list.toggleCompletionOfTaskObject(uid)
+        db.toggle_item_completion_in_database(uid, new_value)
         self.redraw()
 
-    def removeWidgetsForRedraw(self):
+    def remove_widgets_for_redraw(self):
         self.app.removeEntry("Search Term")
         self.app.removeButton("Search")
         self.app.removeButton("Clear")
         self.app.removeFrame("Tasks")
 
     def redraw(self):
-        self.removeWidgetsForRedraw()
-        self.drawRightSide()
+        self.remove_widgets_for_redraw()
+        self.draw_right_side()
 
     def start(self):
         # now start the app loop and spawn a window
