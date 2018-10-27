@@ -6,3 +6,5 @@
 /app/test.db-shm
 /app/test.db-wal
 /app/test.db
+.vscode/*
+blog_post/*

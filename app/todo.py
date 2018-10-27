@@ -204,3 +204,9 @@ class TaskList:
         This method sorts by task due date using the abstract sort function.
         '''
         self.abstract_sort(lambda x: x.duetime, asc)
+
+    def search_by_keyword(self, keyword):
+        '''
+        This method filters the task list by a keyword search (search on title)
+        '''
+        self.abstract_filter(lambda x: keyword in x.title)

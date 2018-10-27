@@ -1,5 +1,5 @@
 from appJar import gui
-import todo, db, helpers
+import todo, db, helpers, time
 from helpers import Colour
 
 class MainUI:
@@ -15,6 +15,7 @@ class MainUI:
         self.main_list = None
         self.task_list = None
         self.redraws = 0
+        self.searchKeyword = ""
     
     def main_setup(self, todo_object):
         # here take the data from the todo object and set up a UI
@@ -24,18 +25,45 @@ class MainUI:
         self.task_list = todo_object.get_tasks()
         self.draw()
 
+    def search(self, button_name):
+        if button_name == "Search":
+            self.searchKeyword = self.app.getEntry("Search Term")
+            self.redraw()
+        else:
+            self.searchKeyword = ""
+            self.redraw()
+
     def drawRightSide(self):
         
         self.app.startFrame("Tasks", row=0, column=1)
         self.app.startScrollPane("Pane" + str(self.redraws))
 
+        # draw search bar
+        self.app.addLabelEntry("Search Term")
+        self.app.setEntry("Search Term", self.searchKeyword, False)
+        self.app.addButtons(["Search", "Clear"], self.search)
+
         # Make copy for draw filtering and sorting
         task_list = self.task_list.copy_task_list()
 
-        if self.current_list_title != "All":
+        if self.current_list_title != "All" and self.current_list_title != "Done" and self.current_list_title != "Today":
             task_list.filter_tasks_by_parent_uid(self.current_list) # Get tasks only from one list
-        task_list.filter_tasks_by_completed(False) # Get incomplete tasks
-        task_list.sort_tasks_by_due_date() # Sort them chronilogically
+
+        # filter tasks if there is a search term
+        if self.searchKeyword != "":
+            task_list.search_by_keyword(self.searchKeyword)
+
+        if self.current_list_title == "Done":
+            task_list.filter_tasks_by_completed(True) # get all completed tasks
+        else:
+            task_list.filter_tasks_by_completed(False) # Get incomplete tasks
+
+        if self.current_list_title == "Today":
+            start_str = time.strftime( "%m/%d/%Y" ) + " 00:00:00"
+            today = int(time.mktime(time.strptime(start_str, "%m/%d/%Y %H:%M:%S")))
+            task_list.filter_tasks_by_datetime(today, True)
+
+        task_list.sort_tasks_by_due_date(True) # Sort them chronilogically
 
         for x in task_list:
             self.drawTaskObject(x)
@@ -73,13 +101,13 @@ class MainUI:
             self.app.addLabel(str(task_object) + "time" + str(self.redraws), helpers.time_to_string(task_object.starttime), row, 1)
             self.app.setLabelFg(str(task_object) + "time" + str(self.redraws), "green")
 
-        self.app.setCheckBoxBg(str(task_object) + "task" + str(self.redraws), task_object.colour.convertRGBToHexString())
+        self.app.setCheckBoxFg(str(task_object) + "task" + str(self.redraws), task_object.colour.convertRGBToHexString())
         self.app.setCheckBoxChangeFunction(str(task_object) + "task" + str(self.redraws), self.handleItemClick)
 
         if task_object.notes != '':
             self.app.addLabel(str(task_object) + "note" + str(self.redraws), task_object.notes)
             self.app.setLabelAlign(str(task_object) + "note" + str(self.redraws), "left")
-            self.app.setLabelBg(str(task_object) + "note" + str(self.redraws), task_object.colour.convertRGBToHexString())
+            self.app.setLabelFg(str(task_object) + "note" + str(self.redraws), task_object.colour.convertRGBToHexString())
 
         self.app.addHorizontalSeparator()
 
@@ -107,8 +135,14 @@ class MainUI:
         db.toggleItemCompletionInDatabase(uid, newValue)
         self.redraw()
 
+    def removeWidgetsForRedraw(self):
+        self.app.removeEntry("Search Term")
+        self.app.removeButton("Search")
+        self.app.removeButton("Clear")
+        self.app.removeFrame("Tasks")
+
     def redraw(self):
-        self.app.removeFrame("Tasks") # see if this can be written to only remove widgets in the right pane.
+        self.removeWidgetsForRedraw()
         self.drawRightSide()
 
     def start(self):
