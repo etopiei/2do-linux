@@ -6,7 +6,6 @@ from helpers import Colour
 
 
 class MainUI:
-
     def __init__(self):
         # do any setup required by the app here
         self.app = gui("2Do Client", "600x600")
@@ -48,7 +47,9 @@ class MainUI:
         bad_lists = ["All", "Done", "Today"]
 
         if self.current_list_title not in bad_lists:
-            self.current_list.filter_tasks_by_parent_uid(self.current_list)  # Get tasks only from one list
+            self.current_list.filter_tasks_by_parent_uid(
+                self.current_list
+            )  # Get tasks only from one list
 
         # filter tasks if there is a search term
         if self.searchKeyword != "":
@@ -170,31 +171,47 @@ class MainUI:
         truncated = task_object.title != truncated_title
         if truncated:
             truncated_title += "..."
-        self.app.addNamedCheckBox(truncated_title, str(task_object) + "task" + str(self.redraws), row, 0)
+        self.app.addNamedCheckBox(
+            truncated_title, str(task_object) + "task" + str(self.redraws), row, 0
+        )
 
         unique_name = str(task_object) + "time" + str(self.redraws)
 
         if task_object.duetime != float(0):
-            self.app.addLabel(unique_name, helpers.time_to_string(task_object.duetime), row, 1)
+            self.app.addLabel(
+                unique_name, helpers.time_to_string(task_object.duetime), row, 1
+            )
             self.app.setLabelFg(unique_name, "red")
         elif task_object.starttime != float(0):
-            self.app.addLabel(unique_name, helpers.time_to_string(task_object.starttime), row, 1)
+            self.app.addLabel(
+                unique_name, helpers.time_to_string(task_object.starttime), row, 1
+            )
             self.app.setLabelFg(unique_name, "green")
 
-        self.app.setCheckBoxChangeFunction(str(task_object) + "task" + str(self.redraws), self.handle_item_click)
+        self.app.setCheckBoxChangeFunction(
+            str(task_object) + "task" + str(self.redraws), self.handle_item_click
+        )
 
-        if task_object.notes != '':
-            self.app.addLabel(str(task_object) + "note" + str(self.redraws), task_object.notes[:40])
-            self.app.setLabelAlign(str(task_object) + "note" + str(self.redraws), "left")
+        if task_object.notes != "":
+            self.app.addLabel(
+                str(task_object) + "note" + str(self.redraws), task_object.notes[:40]
+            )
+            self.app.setLabelAlign(
+                str(task_object) + "note" + str(self.redraws), "left"
+            )
 
         self.app.addHorizontalSeparator()
 
         self.app.stopFrame()
 
-    def draw_list_menu_item(self, main_list_item, colour=Colour.from_hex_string("#FFFFFF")):
+    def draw_list_menu_item(
+        self, main_list_item, colour=Colour.from_hex_string("#FFFFFF")
+    ):
         self.app.button(main_list_item.title, value=self.handle_menu_click)
         self.app.setButtonBg(main_list_item.title, colour.convert_rgb_to_hex_string())
-        self.app.setButtonFg(main_list_item.title, colour.get_darker_shade().convert_rgb_to_hex_string())
+        self.app.setButtonFg(
+            main_list_item.title, colour.get_darker_shade().convert_rgb_to_hex_string()
+        )
 
     def handle_menu_click(self, value):
         for x in self.main_list:
@@ -205,14 +222,14 @@ class MainUI:
 
     def draw_sub_window_to_display_task(self):
         self.app.startSubWindow("single_task_view", modal=True)
-        self.app.addLabel("TaskViewTitle")
+        self.app.addLabel("TaskView")
         self.app.addButton("Change/Set Date")
         self.app.addButton("Set/Edit Notes")
         self.app.stopSubWindow()
 
     @staticmethod
     def get_uid_from_string(task_object_string):
-        return task_object_string.split('UID: ')[1].split(" ")[0]
+        return task_object_string.split("UID: ")[1].split(" ")[0]
 
     def handle_item_click(self, value):
         """

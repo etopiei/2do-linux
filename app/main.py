@@ -3,7 +3,7 @@ import appui
 import db
 
 if __name__ == "__main__":
-    
+
     app = appui.MainUI()
 
     todo_instance = todo.ToDo()  # initialise

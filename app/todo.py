@@ -21,22 +21,31 @@ class ToDo:
         """
         database_main_lists = db.get_main_lists()
         for x in database_main_lists:
-            if x['title'] is not None and x['uid'] is not None:
-                self.main_lists.append(TaskObject(x['title'], x['uid'], None, colour=x['color'], special=x['special']))
+            if x["title"] is not None and x["uid"] is not None:
+                self.main_lists.append(
+                    TaskObject(
+                        x["title"],
+                        x["uid"],
+                        None,
+                        colour=x["color"],
+                        special=x["special"],
+                    )
+                )
 
         task_list = db.get_tasks()
         for x in task_list:
-            task_colour = self.main_lists.find_colour_uid(x['parent_uid'])
+            task_colour = self.main_lists.find_colour_uid(x["parent_uid"])
 
             new_task = TaskObject(
-                x['title'],
-                x['uid'],
-                x['parent_uid'],
-                x['duetime'],
-                x['startdate'],
-                x['completed'],
-                x['notes'],
-                colour=task_colour)
+                x["title"],
+                x["uid"],
+                x["parent_uid"],
+                x["duetime"],
+                x["startdate"],
+                x["completed"],
+                x["notes"],
+                colour=task_colour,
+            )
 
             self.tasks.append(new_task)
 
@@ -57,9 +66,18 @@ class TaskObject:
     This is the underlying structure for TaskList and MainList and is what the UI will mostly access.
     """
 
-    def __init__(self, title, uid, parent_uid, duetime=time.time(),
-                 starttime=time.time(), completed=False, notes=None,
-                 colour=None, special=None):
+    def __init__(
+        self,
+        title,
+        uid,
+        parent_uid,
+        duetime=time.time(),
+        starttime=time.time(),
+        completed=False,
+        notes=None,
+        colour=None,
+        special=None,
+    ):
 
         self.title = title
         self.uid = uid
@@ -79,7 +97,7 @@ class TaskObject:
             return_string += " Completed"
         else:
             return_string += " Not Completed"
-        if self.notes != '':
+        if self.notes != "":
             return_string += " Notes: " + self.notes
 
         return_string += "}"
@@ -204,7 +222,7 @@ class TaskList:
         if after:
             self.abstract_filter(lambda x: x.duetime > datetime)
         else:
-            self.abstract_filter(lambda x: x.duetime < datetime) 
+            self.abstract_filter(lambda x: x.duetime < datetime)
 
     def filter_tasks_by_parent_uid(self, uid):
         """
