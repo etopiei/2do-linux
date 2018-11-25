@@ -1,4 +1,5 @@
 from appJar import gui
+import appJar
 import db
 import helpers
 import time
@@ -162,6 +163,9 @@ class MainUI:
 
         self.init_right_side()
 
+        self.app.startSubWindow("single_task_view", title="Task View", modal=True)
+        self.app.stopSubWindow()
+
     def draw_task_object(self, task_object):
 
         self.app.startFrame(task_object.uid)
@@ -172,8 +176,17 @@ class MainUI:
         if truncated:
             truncated_title += "..."
         self.app.addNamedCheckBox(
-            truncated_title, str(task_object) + "task" + str(self.redraws), row, 0
+            "", str(task_object) + "task" + str(self.redraws), row, 0
         )
+
+        extra = ""
+        done = False
+        while not done:
+            try:
+                self.app.addButton(truncated_title + extra, self.task_edit, row, 0) # this will open a sub window so the task' details can be edited.
+                done = True
+            except appJar.appjar.ItemLookupError:
+                extra += "*"
 
         unique_name = str(task_object) + "time" + str(self.redraws)
 
@@ -220,16 +233,12 @@ class MainUI:
                 self.current_list_title = x.title
         self.redraw()
 
-    def draw_sub_window_to_display_task(self):
-        self.app.startSubWindow("single_task_view", modal=True)
-        self.app.addLabel("TaskView")
-        self.app.addButton("Change/Set Date")
-        self.app.addButton("Set/Edit Notes")
-        self.app.stopSubWindow()
-
     @staticmethod
     def get_uid_from_string(task_object_string):
         return task_object_string.split("UID: ")[1].split(" ")[0]
+
+    def get_uid_from_title(self, title_string):
+        return self.current_list.get_uid_from_title(title_string)
 
     def handle_item_click(self, value):
         """
@@ -239,6 +248,29 @@ class MainUI:
         new_value = self.task_list.toggleCompletionOfTaskObject(uid)
         db.toggle_item_completion_in_database(uid, new_value)
         self.redraw()
+
+    def populateSubWindow(self, task_uid):
+        task = self.current_list.get_task_from_uid(task_uid)
+        self.app.destroySubWindow("single_task_view")
+        self.app.startSubWindow("single_task_view", title="Task View", modal=True)
+        self.app.addLabel(task.title)
+        self.app.addTextArea("task_notes")
+
+        # Here extract the date information if it already exists
+        # add the date as whatever is in the textboxes.
+        date = task.get_date_from_unix_timestamp()
+        self.app.addLabel(str(date))
+        self.app.addNamedButton("Close", "single_task_view", self.app.hideSubWindow)
+        self.app.stopSubWindow()
+
+
+    def task_edit(self, value):
+        """
+        This should populate the subwindow with the task details and then show the sub-window.
+        """
+        uid = self.get_uid_from_title(value)
+        self.populateSubWindow(uid)
+        self.app.showSubWindow("single_task_view")
 
     def redraw(self):
         self.draw_right_side()

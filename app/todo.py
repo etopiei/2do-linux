@@ -1,6 +1,6 @@
 import db
 import time
-
+import files
 
 class ToDo:
 
@@ -14,13 +14,8 @@ class ToDo:
         self.main_lists = MainList()
         self.tasks = TaskList()
 
-    def get_tasks_from_database(self):
-        """
-        This will use db methods to return data, this method will wrap the data
-        in a Task Object and append it to the data structures of this class.
-        """
-        database_main_lists = db.get_main_lists()
-        for x in database_main_lists:
+    def add_main_lists_to_structure(self, main_lists):
+        for x in main_lists:
             if x["title"] is not None and x["uid"] is not None:
                 self.main_lists.append(
                     TaskObject(
@@ -32,7 +27,7 @@ class ToDo:
                     )
                 )
 
-        task_list = db.get_tasks()
+    def add_tasks_to_structure(self, task_list):
         for x in task_list:
             task_colour = self.main_lists.find_colour_uid(x["parent_uid"])
 
@@ -48,6 +43,30 @@ class ToDo:
             )
 
             self.tasks.append(new_task)
+
+    def get_tasks_from_files(self):
+        """
+        This will use the files interface to return data and will wrap the data in a TaskObject
+        and append it to the data strutures used in this class
+        """
+        file_interface = files.FileInterface(["/Users/etopiei/Dropbox/Apps/2Do/tod"])
+
+        #main_lists = file_interface.get_main_lists()
+        #self.add_main_lists_to_structure(main_lists)
+
+        task_list = file_interface.get_tasks()
+        self.add_tasks_to_structure(task_list)
+
+    def get_tasks_from_database(self):
+        """
+        This will use db methods to return data, this method will wrap the data
+        in a Task Object and append it to the data structures of this class.
+        """
+        database_main_lists = db.get_main_lists()
+        self.add_main_lists_to_structure(database_main_lists)
+
+        task_list = db.get_tasks()
+        self.add_tasks_to_structure(task_list)
 
     def get_main_lists(self):
         return self.main_lists
@@ -104,6 +123,13 @@ class TaskObject:
 
         return return_string
 
+    def get_date_from_unix_timestamp(self):
+        """
+        This method will take the timestamp of the task object and return a dictionary of {day: x, month: y, year: z}
+        x, y, z will all be ints: 0 < x >= 31, 0 < y >= 12, 1970 < z >= 2035
+        """
+        date = {"day": 1, "month": 1, "year": 1970}
+        return date
 
 class MainList:
 
@@ -190,6 +216,31 @@ class TaskList:
                 in_parent.append(x)
         return in_parent
 
+    def get_uid_from_title(self, title_string):
+        """
+        This method will find the UID of a task in a task list
+        If there is duplicates of the task title then it will be the number of astericks after the first one
+        eg: Assignment*** will be the fourth Assignment found.
+        """
+        num_astericks = len(title_string) - len(title_string.split("*")[0])
+        found = 0
+        for x in self.tasks:
+            if x.title == title_string.split("*")[0]:
+                # it's a match check astericks'
+                if found == num_astericks:
+                    return x.uid
+                found += 1
+        return None
+
+    def get_task_from_uid(self, task_uid):
+        """
+        This will return the task object of the UID specified.
+        """
+        for x in self.tasks:
+            if x.uid == task_uid:
+                return x
+        return None
+
     def abstract_filter(self, condition_lambda):
         """
         This is an abstract function that iterates through a list of tasks and ensures that
@@ -242,3 +293,6 @@ class TaskList:
         This method filters the task list by a keyword search (search on title)
         """
         self.abstract_filter(lambda x: keyword in x.title)
+
+    # TODO: Add a method to this class to be able to work out which tasks are related to which
+    # i.e. Find out if there are tasks within other tasks in a project or checklist

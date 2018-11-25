@@ -8,3 +8,6 @@
 /app/test.db
 .vscode/*
 blog_post/*
+test_files/*
+/app/test_files/*
+/app/test_file_unpack.py
